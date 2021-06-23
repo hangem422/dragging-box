@@ -1,8 +1,18 @@
 const _pendding = new WeakMap();
 
 class Component {
+  #init = false;
+
   state = {};
   prop = {};
+
+  constructor() {
+    Promise.resolve().then(() => {
+      if (this.#init) return;
+      this.#init = true;
+      this.preRender();
+    });
+  }
 
   /**
    * @description 상태값을 변경합니다.
@@ -11,31 +21,30 @@ class Component {
   setState(state) {
     const throttle = _pendding.has(this); // 반영되길 기다리는 이전 setState의 실행 여부를 체크합니다.
     const nextState = throttle ? _pendding.get(this) : { ...this.state };
+    let needRender = false;
 
     // 변경 사항들을 반영합니다.
     Object.entries(state).forEach(([key, value]) => {
-      if (nextState[key] !== undefined) nextState[key] = value;
+      if (nextState[key] !== undefined && nextState[key] !== value) {
+        nextState[key] = value;
+        if (!needRender) needRender = true;
+      }
     });
 
-    if (!throttle) {
+    if (needRender && !throttle) {
       _pendding.set(this, nextState);
 
-      Promise.resolve()
-        .then(() => {
-          // 대기중인 최종 state를 반영합니다.
-          const preState = this.state;
-          this.state = _pendding.get(this);
+      Promise.resolve().then(() => {
+        // 대기중인 최종 state를 반영합니다.
+        const preState = this.state;
+        this.state = _pendding.get(this);
 
-          // 대기중을 해제하고 컴포넌트를 렌더합니다.
-          _pendding.delete(this);
-          this.render(preState, this.prop);
+        // 대기중을 해제하고 컴포넌트를 렌더합니다.
+        _pendding.delete(this);
+        this.preRender(preState, this.prop);
 
-          return { ...preState };
-        })
-        .then((preState) => {
-          // 컴포넌트 렌더 이후 처리를 진행합니다.
-          this.componentDidRender(preState, this.prop);
-        });
+        return { ...preState };
+      });
     }
   }
 
@@ -58,19 +67,24 @@ class Component {
       // 프로퍼티에 변경사항이 있으면 컴포넌트를 렌더합니다.
       const preProp = this.prop;
       this.prop = nextProp;
-      this.render(this.state, preProp);
-
-      // 컴포넌트 렌더 이후 처리를 진행합니다.
-      Promise.resolve().then(() => {
-        this.componentDidRender(this.state, { ...preProp });
-      });
+      this.preRender(this.state, preProp);
     }
   }
 
   /**
-   * @description 컴포넌트를 렌더합니다.
+   * @description 컴포넌트 랜더를 진행하기 전에 사전 작업을 진행합니다.
    * @param {{ [key: string]: any }} preState 이전 상태값
    * @param {{ [key: string]: any }} preProp 이전 프러퍼티
+   */
+  preRender(preState, preProp) {
+    if (this.#init === false) this.#init = true;
+    Promise.resolve().then(() => this.componentDidRender(preState, preProp));
+
+    this.render();
+  }
+
+  /**
+   * @description 컴포넌트를 렌더합니다.
    */
   render() {
     const proto = Object.getPrototypeOf(this);

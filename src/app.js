@@ -1,32 +1,26 @@
 import Component from './util/component.js';
-import Location from './util/location.js';
-
-import Dialog from './components/dialog/index.js';
+import DialogBoard from './components/dialog-board/index.js';
 
 class App extends Component {
   #canvas = document.createElement('canvas');
   #ctx = this.#canvas.getContext('2d');
   #pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
 
-  #dialog = new Dialog();
+  #dialogBoard;
 
   state = {
     stageWidth: document.body.clientWidth,
     stageHeight: document.body.clientHeight,
-    pointer: new Location(),
-    isDwon: false,
   };
 
   constructor() {
     super();
 
-    this.onMove = this.#pointerMove.bind(this);
-    window.addEventListener('resize', this.#resize.bind(this));
-    window.addEventListener('pointerdown', this.#pointerDown.bind(this));
-    window.addEventListener('pointerup', this.#pointerUp.bind(this));
+    this.#dialogBoard = new DialogBoard();
 
+    window.addEventListener('resize', this.#resize.bind(this));
     this.#resize();
-    // this.#animate();
+    this.#animate();
   }
 
   get element() {
@@ -48,50 +42,21 @@ class App extends Component {
   }
 
   /**
-   * @description 마우스 포인터를 이동합니다.
-   * @param {PointerEvent} e
-   */
-  #pointerMove(e) {
-    const pointer = new Location(e.clientX, e.clientY);
-    this.setState({ pointer });
-  }
-
-  /**
-   * @description 마우스 포인터를 클릭합니다.
-   * @param {PointerEvent} e
-   */
-  #pointerDown(e) {
-    window.addEventListener('pointermove', this.onMove);
-    this.setState({ isDwon: true });
-    this.#pointerMove(e);
-  }
-
-  /**
-   * @description 마우스 포인터 클릭을 해제합니다.
-   * @param {PointerEvent} e
-   */
-  #pointerUp(e) {
-    window.removeEventListener('pointermove', this.onMove);
-    this.setState({ isDwon: false });
-    this.#pointerMove(e);
-  }
-
-  /**
    * @description 에니메이션을 시작합니다.
    */
   #animate() {
-    window.requestAnimationFrame(this.animate.bind(this));
+    window.requestAnimationFrame(this.#animate.bind(this));
 
     const { stageWidth, stageHeight } = this.state;
     this.#ctx.clearRect(0, 0, stageWidth, stageHeight);
 
-    this.#dialog.draw(this.#ctx);
+    this.#dialogBoard.draw(this.#ctx);
   }
 
   render() {
-    const { stageWidth, stageHeight, pointer, isDwon } = this.state;
+    const { stageWidth, stageHeight } = this.state;
 
-    this.#dialog.setProp({ stageWidth, stageHeight, pointer, isDwon });
+    this.#dialogBoard.setProp({ stageWidth, stageHeight });
   }
 }
 
