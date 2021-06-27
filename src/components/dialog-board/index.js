@@ -3,19 +3,27 @@ import Location from '../../util/location.js';
 import Dialog from './dialog.js';
 import { dialogs } from '../../constant/conf.js';
 
+/**
+ * @typedef {object} DialogBoardProp
+ * @property {number} stageWidth Canvas 가로 사이즈
+ * @property {number} stageHeight Canvas 세로 사이즈
+ */
+
+/**
+ * @class DialogBoard
+ */
 class DialogBoard extends Component {
   #dialogs;
 
   state = {
-    items: dialogs.map((conf) => ({ ...conf, destPos: null })), // speed 빠짐
-    pointer: new Location(0, 0),
-    isDwon: false,
+    items: dialogs.map((conf) => ({ ...conf })), // speed 빠짐
+    selected: -1,
+    pointer: null,
+    isDown: false,
   };
 
-  prop = {
-    stageWidth: 0,
-    stageHeight: 0,
-  };
+  /** @type {DialogBoardProp} */
+  prop = {};
 
   constructor() {
     super();
@@ -33,7 +41,7 @@ class DialogBoard extends Component {
    */
   #pointerMove(e) {
     const pointer = new Location(e.clientX, e.clientY);
-    this.setState({ pointer });
+    this.setState({ pointer, isDown: false });
   }
 
   /**
@@ -42,8 +50,8 @@ class DialogBoard extends Component {
    */
   #pointerDown(e) {
     window.addEventListener('pointermove', this.onMove);
-    this.setState({ isDwon: true });
-    this.#pointerMove(e);
+    const pointer = new Location(e.clientX, e.clientY);
+    this.setState({ pointer, isDown: true });
   }
 
   /**
@@ -52,8 +60,12 @@ class DialogBoard extends Component {
    */
   #pointerUp(e) {
     window.removeEventListener('pointermove', this.onMove);
-    this.setState({ isDwon: false });
-    this.#pointerMove(e);
+    this.setState({ pointer: null, isDown: false, selected: -1 });
+  }
+
+  #selectItemIndex(index) {
+    console.log(index);
+    this.setState({ selected: index });
   }
 
   /**
@@ -61,14 +73,31 @@ class DialogBoard extends Component {
    * @param {CanvasRenderingContext2D} ctx
    */
   draw(ctx) {
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 3;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+    ctx.lineWidth = 2;
+
     this.#dialogs.forEach((dialog) => dialog.draw(ctx));
   }
 
   render() {
     const { stageWidth, stageHeight } = this.prop;
+    const { items, pointer, isDown, selected } = this.state;
+    const onPointerDown = this.#selectItemIndex.bind(this);
 
-    this.state.items.forEach((item, i) => {
-      this.#dialogs[i].setProp({ ...item, stageWidth, stageHeight });
+    items.forEach((item, index) => {
+      this.#dialogs[index].setProp({
+        ...item,
+        index,
+        pointer,
+        isDown,
+        onPointerDown,
+        selected: selected === index,
+        stageWidth,
+        stageHeight,
+      });
     });
   }
 }

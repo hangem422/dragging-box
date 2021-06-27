@@ -53,14 +53,12 @@ class Component {
    * @param {{{ [key: string]: any }}} prop 변경한 프로퍼티
    */
   setProp(prop) {
-    const nextProp = { ...this.prop };
+    const nextProp = {};
     let needRender = false;
 
     Object.entries(prop).forEach(([key, value]) => {
-      if (nextProp[key] !== value) {
-        nextProp[key] = value;
-        if (!needRender) needRender = true;
-      }
+      nextProp[key] = value;
+      if (!needRender) needRender = this.prop[key] !== value;
     });
 
     if (needRender) {

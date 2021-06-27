@@ -72,7 +72,7 @@ class Location {
    * @param {Location | number} value
    * @returns {Location}
    */
-  subtract(value) {
+  multiply(value) {
     let x = this.#x;
     let y = this.#y;
 
@@ -101,6 +101,40 @@ class Location {
       this.#x <= loc.x + width &&
       this.#y <= loc.y + height
     );
+  }
+
+  /**
+   * @description 좌표 값을 주어진 최소 좌표 이상으로 만듭니다.
+   * @param {Location | number} value 최소 좌표
+   * @returns {Location}
+   */
+  over(value) {
+    if (value instanceof Location) {
+      const x = Math.max(this.#x, value.x);
+      const y = Math.max(this.#y, value.y);
+      return new Location(x, y);
+    }
+
+    const x = Math.max(this.#x, value);
+    const y = Math.max(this.#y, value);
+    return new Location(x, y);
+  }
+
+  /**
+   * @description 좌표 값을 주어진 최대 좌표 이하로 만듭니다.
+   * @param {Location | number} value 최대 좌표
+   * @returns {Location}
+   */
+  less(value) {
+    if (value instanceof Location) {
+      const x = Math.min(this.#x, value.x);
+      const y = Math.min(this.#y, value.y);
+      return new Location(x, y);
+    }
+
+    const x = Math.min(this.#x, value);
+    const y = Math.min(this.#y, value);
+    return new Location(x, y);
   }
 }
 

@@ -1,4 +1,6 @@
-export const dialogs = [{ width: 260, height: 260, color: '#f4e55a' }];
+export const dialogs = [
+  { width: 260, height: 260, color: '#f4e55a', followSpeed: 0.08 },
+];
 
 const deepFreeze = (target) => {
   if (target && typeof target === 'object') {
