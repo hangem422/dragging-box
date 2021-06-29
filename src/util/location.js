@@ -104,6 +104,19 @@ class Location {
   }
 
   /**
+   * @description 위치 좌표가 동일한지 여부를 체크합니다.
+   * @param {Location | number} value
+   * @returns {boolean}
+   */
+  isEqual(value) {
+    if (value instanceof Location) {
+      return value.x === this.#x && value.y === this.#y;
+    }
+
+    return this.#x === value && this.#y === value;
+  }
+
+  /**
    * @description 좌표 값을 주어진 최소 좌표 이상으로 만듭니다.
    * @param {Location | number} value 최소 좌표
    * @returns {Location}

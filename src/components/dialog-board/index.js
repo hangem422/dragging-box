@@ -1,7 +1,7 @@
 import Component from '../../util/component.js';
 import Location from '../../util/location.js';
 import Dialog from './dialog.js';
-import { dialogs } from '../../constant/conf.js';
+import { dialogs, dialogOpt } from '../../constant/conf.js';
 
 /**
  * @typedef {object} DialogBoardProp
@@ -16,7 +16,7 @@ class DialogBoard extends Component {
   #dialogs;
 
   state = {
-    items: dialogs.map((conf) => ({ ...conf })), // speed 빠짐
+    items: dialogs.map((conf) => ({ ...conf })),
     selected: -1,
     pointer: null,
     isDown: false,
@@ -64,8 +64,14 @@ class DialogBoard extends Component {
   }
 
   #selectItemIndex(index) {
-    console.log(index);
     this.setState({ selected: index });
+  }
+
+  /**
+   * @description 다음 Animation Frame을 위한 준비를 진행합니다.
+   */
+  moveNextFrame() {
+    this.#dialogs.forEach((dialog) => dialog.moveNextFrame());
   }
 
   /**
@@ -73,13 +79,22 @@ class DialogBoard extends Component {
    * @param {CanvasRenderingContext2D} ctx
    */
   draw(ctx) {
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 3;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
-    ctx.lineWidth = 2;
+    const { selected } = this.state;
 
-    this.#dialogs.forEach((dialog) => dialog.draw(ctx));
+    ctx.save();
+    ctx.shadowOffsetX = dialogOpt.shadowOffsetX;
+    ctx.shadowOffsetY = dialogOpt.shadowOffsetY;
+    ctx.shadowBlur = dialogOpt.shadowBlur;
+    ctx.shadowColor = dialogOpt.shadowColor;
+
+    this.#dialogs.forEach((dialog) => dialog.drawDialog(ctx));
+    ctx.restore();
+
+    if (this.#dialogs[selected]) {
+      ctx.save();
+      this.#dialogs[selected].drawDragLine(ctx);
+      ctx.restore();
+    }
   }
 
   render() {

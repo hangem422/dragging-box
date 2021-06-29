@@ -48,8 +48,10 @@ class App extends Component {
     window.requestAnimationFrame(this.#animate.bind(this));
 
     const { stageWidth, stageHeight } = this.state;
-    this.#ctx.clearRect(0, 0, stageWidth, stageHeight);
 
+    this.#dialogBoard.moveNextFrame();
+
+    this.#ctx.clearRect(0, 0, stageWidth, stageHeight);
     this.#dialogBoard.draw(this.#ctx);
   }
 

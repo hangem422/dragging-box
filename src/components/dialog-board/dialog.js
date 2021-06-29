@@ -5,8 +5,12 @@ import Location from '../../util/location.js';
  * @typedef {object} DialogProp
  * @property {number} width Dialog 가로 사이즈
  * @property {number} height Dialog 세로 사이즈
- * @property {number} followSpeed Dialog 세로 사이즈
- * @property {string} color Dialog 색상
+ * @property {number} followSpeed Dialog 이동 속도
+ * @property {string} dialogColor Dialog 색상
+ * @property {string} dragEdgeColor Drag Line 색상
+ * @property {string} dragVertaxColor Drag Line 종단점 색상
+ * @property {number} dragEdgeSize Drag Line 두께
+ * @property {number} dragEdgeRadius  Drag Line 종단점 크기
  * @property {number} index  Dialog의 z-index
  * @property {Location} pointer 현재 마우스 포인터 위치
  * @property {boolean} isDown 마우스 클릭 여부
@@ -19,7 +23,7 @@ import Location from '../../util/location.js';
 class Dialog extends Component {
   #pos = null;
   #padding = null;
-  #target;
+  #target = null;
 
   /** @type {DialogProp} */
   prop = {};
@@ -56,19 +60,54 @@ class Dialog extends Component {
   }
 
   /**
-   * @description 아이템을 화면에 그립니다.
-   * @param {CanvasRenderingContext2D} ctx
+   * @description 다음 Animation Frame을 위한 준비를 진행합니다.
    */
-  draw(ctx) {
-    if (this.#pos === null) return;
-    const { color, width, height, followSpeed } = this.prop;
+  moveNextFrame() {
+    if (this.#pos === null || this.#target === null) return;
+    const { followSpeed } = this.prop;
 
     const move = this.#target.subtract(this.#pos).multiply(followSpeed);
     this.#pos = this.#pos.sum(move);
+  }
+
+  /**
+   * @description Dialog를 화면에 그립니다.
+   * @param {CanvasRenderingContext2D} ctx
+   */
+  drawDialog(ctx) {
+    if (this.#pos === null || this.#target === null) return;
+    const { dialogColor, width, height } = this.prop;
 
     ctx.beginPath();
-    ctx.fillStyle = color;
+    ctx.fillStyle = dialogColor;
     ctx.fillRect(this.#pos.x, this.#pos.y, width, height);
+  }
+
+  /**
+   * @description Drag Line=을 화면에 그립니다.
+   * @param {CanvasRenderingContext2D} ctx
+   */
+  drawDragLine(ctx) {
+    if (this.#pos === null || this.#target === null) return;
+    const { dragEdgeColor, dragVertaxColor, dragEdgeSize, pointer } = this.prop;
+    const start = this.#pos.sum(this.#padding);
+
+    ctx.fillStyle = dragVertaxColor;
+    ctx.strokeStyle = dragEdgeColor;
+    ctx.lineWidth = dragEdgeSize;
+
+    ctx.beginPath();
+    ctx.arc(start.x, start.y, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(pointer.x, pointer.y, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(pointer.x, pointer.y);
+    ctx.stroke();
   }
 
   render() {
