@@ -1,5 +1,7 @@
 # Dragging Box
 
+![Sample Image](./src/image/sample.gif)
+
 ## 원본
 
 파일 구조와, 코드 스타일을 변경했습니다. 원본을 참고하고 싶으시면 아래 링크를 이용해주세요.
