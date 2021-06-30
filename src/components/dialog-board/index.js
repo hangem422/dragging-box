@@ -91,9 +91,7 @@ class DialogBoard extends Component {
     ctx.restore();
 
     if (this.#dialogs[selected]) {
-      ctx.save();
       this.#dialogs[selected].drawDragLine(ctx);
-      ctx.restore();
     }
   }
 

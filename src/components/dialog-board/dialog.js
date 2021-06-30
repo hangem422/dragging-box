@@ -1,6 +1,9 @@
 import Component from '../../util/component.js';
 import Location from '../../util/location.js';
 
+const MAX_DIST = 24;
+const MAX_ANGLE = 30;
+
 /**
  * @typedef {object} DialogProp
  * @property {number} width Dialog 가로 사이즈
@@ -22,8 +25,9 @@ import Location from '../../util/location.js';
 
 class Dialog extends Component {
   #pos = null;
-  #padding = null;
   #target = null;
+  #padding = null;
+  #rotation = 0;
 
   /** @type {DialogProp} */
   prop = {};
@@ -50,6 +54,7 @@ class Dialog extends Component {
 
       this.#pos = new Location(x, y);
       this.#target = new Location(x, y);
+      this.#padding = new Location(0, 0);
     } else {
       // 아이템이 화면 밖으로 넘어가면, 화면 안으로 조정합니다.
       const maxLoc = this.#getMaxLocation();
@@ -64,10 +69,20 @@ class Dialog extends Component {
    */
   moveNextFrame() {
     if (this.#pos === null || this.#target === null) return;
-    const { followSpeed } = this.prop;
+    const { followSpeed, height } = this.prop;
 
     const move = this.#target.subtract(this.#pos).multiply(followSpeed);
     this.#pos = this.#pos.sum(move);
+
+    // 이동 거리가 MAX_DIST일때 MAX_ANGLE의 기울기가 나옵니다.
+    // 이동 거리가 MAX_DIST를 넘더라도 MAX_ANGLE을 넘을 수 없습니다.
+    const rate = Math.min(Math.abs(move.x) / MAX_DIST, 1);
+    // dialog 이동 방향
+    const dir = move.x > 0 ? 1 : -1;
+    // dialog 상단은 드래그하면 정방향으로 회전되고, 하단을 드래그하면 역방향으로 회전됩니다.
+    // dialog 위 아래보다 중앙을 드래그하면 회전이 작습니다.
+    const dencity = (this.#padding.y / height) * -2 + 1;
+    this.#rotation = MAX_ANGLE * rate * dir * dencity;
   }
 
   /**
@@ -75,12 +90,17 @@ class Dialog extends Component {
    * @param {CanvasRenderingContext2D} ctx
    */
   drawDialog(ctx) {
-    if (this.#pos === null || this.#target === null) return;
+    if (this.#pos === null) return;
     const { dialogColor, width, height } = this.prop;
+    const origin = this.#pos.sum(this.#padding);
 
+    ctx.save();
+    ctx.translate(origin.x, origin.y);
+    ctx.rotate((this.#rotation * Math.PI) / 180);
     ctx.beginPath();
     ctx.fillStyle = dialogColor;
-    ctx.fillRect(this.#pos.x, this.#pos.y, width, height);
+    ctx.fillRect(-this.#padding.x, -this.#padding.y, width, height);
+    ctx.restore();
   }
 
   /**
@@ -92,6 +112,7 @@ class Dialog extends Component {
     const { dragEdgeColor, dragVertaxColor, dragEdgeSize, pointer } = this.prop;
     const start = this.#pos.sum(this.#padding);
 
+    ctx.save();
     ctx.fillStyle = dragVertaxColor;
     ctx.strokeStyle = dragEdgeColor;
     ctx.lineWidth = dragEdgeSize;
@@ -108,6 +129,7 @@ class Dialog extends Component {
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(pointer.x, pointer.y);
     ctx.stroke();
+    ctx.restore();
   }
 
   render() {
