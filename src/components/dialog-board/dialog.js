@@ -118,17 +118,17 @@ class Dialog extends Component {
     ctx.lineWidth = dragEdgeSize;
 
     ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(pointer.x, pointer.y);
+    ctx.stroke();
+
+    ctx.beginPath();
     ctx.arc(start.x, start.y, 8, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.beginPath();
     ctx.arc(pointer.x, pointer.y, 8, 0, Math.PI * 2);
     ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(start.x, start.y);
-    ctx.lineTo(pointer.x, pointer.y);
-    ctx.stroke();
     ctx.restore();
   }
 

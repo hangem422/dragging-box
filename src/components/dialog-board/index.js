@@ -64,7 +64,7 @@ class DialogBoard extends Component {
   }
 
   #selectItemIndex(index) {
-    this.setState({ selected: index });
+    this.setState({ selected: index, isDown: false });
   }
 
   /**
